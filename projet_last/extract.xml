@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+	<xsl:key name="yearArticle" match="article" use="year" />
+	<xsl:template match="//extract">
+		<html>
+			<body>
+				<h1>Extrait concernant <xsl:apply-templates select="name"/></h1>
+				<xsl:apply-templates select="coauthors"/>
+				<h2>Article<xsl:if test="count(article) &gt; 1">s</xsl:if></h2>
+				<xsl:if test="count(article) &gt; 0">
+					<xsl:value-of select="name"/> a écrit <xsl:value-of select="count(article)"/> article<xsl:if test="count(article) &gt; 1">s</xsl:if>
+					<xsl:apply-templates select="//article">
+						<xsl:sort select="year"/>
+					</xsl:apply-templates>
+				</xsl:if>
+				<xsl:if test="count(article)=0">
+					Totor le Castor n'a pas écrit d'article.
+				</xsl:if>
+				<h2>InProceeding<xsl:if test="count(inproceedings) &gt; 1">s</xsl:if></h2>
+				<xsl:if test="count(inproceedings) &gt; 0">
+					<xsl:value-of select="name"/> a écrit <xsl:value-of select="count(inproceedings)"/> inproceeding<xsl:if test="count(inproceedings) &gt; 1">s</xsl:if>
+					<xsl:apply-templates select="//inproceedings">
+						<xsl:sort select="year"/>
+					</xsl:apply-templates>
+				</xsl:if>
+				<xsl:if test="count(inproceedings)=0">
+					Totor le Castor n'a pas écrit d'article de type inproceedings.
+				</xsl:if>
+				<h3>Statistiques sur l<xsl:if test="count(article)=1">'</xsl:if><xsl:if test="count(article) &gt; 1">es </xsl:if>article<xsl:if test="count(article) &gt; 1">s</xsl:if></h3>
+				<xsl:apply-templates select="article[generate-id() = generate-id(key('yearArticle', ./year)[1])]" mode="statistic">
+					<xsl:sort select="key('yearArticle', ./year)/year"/>
+				</xsl:apply-templates>
+			</body>
+		</html>
+	</xsl:template>
+	<xsl:template match="author">
+		<li><xsl:apply-templates/></li>
+	</xsl:template>
+	<xsl:template match="article">
+		<div>
+			<ul>
+				<li>Article "<xsl:value-of select="./title"/>", publié en <xsl:value-of select="year"/>, auteur<xsl:if test="count(author) &gt; 1">s</xsl:if>:</li>
+				<ul>
+					<xsl:for-each select="author">
+						<li><xsl:value-of select="./text()"/></li>
+					</xsl:for-each>
+				</ul>
+			</ul>
+		</div>
+	</xsl:template>
+	<xsl:template match="article" mode="statistic">
+		<xsl:variable name="currentYear" select="year"/>
+		<p>En <xsl:value-of select="key('yearArticle',year)/year"/>, <xsl:value-of select="//name/text()"/> a écrit <xsl:value-of select="count(key('yearArticle',year))"/> article<xsl:if test="count(key('yearArticle',year)) &gt; 1">s</xsl:if>.</p>
+	</xsl:template>
+	<xsl:template match="inproceedings">
+		<div>
+			<ul>
+				<li>Article de type inproceeding "<xsl:value-of select="title"/>", publié en <xsl:value-of select="year"/>, auteur<xsl:if test="count(author) &gt; 1">s</xsl:if>:</li>
+				<ul>
+					<xsl:for-each select="author">
+						<li><xsl:value-of select="./text()"/></li>
+					</xsl:for-each>
+				</ul>
+			</ul>
+		</div>
+	</xsl:template>
+	<xsl:template match="coauthors">
+		<h2>Coauteur<xsl:if test="count(author) &gt; 1">s</xsl:if></h2>	
+		<xsl:value-of select="../name"/> à écrit avec <xsl:value-of select="count(author)"/> personne<xsl:if test="count(author) &gt; 1">s</xsl:if><xsl:if test="count(author) &gt; 0"> :</xsl:if>
+		<ul>
+			<xsl:apply-templates select="author">
+				<xsl:sort select="text()"/>
+			</xsl:apply-templates>
+		</ul>
+	</xsl:template>
+</xsl:stylesheet>
